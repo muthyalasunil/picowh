@@ -17,6 +17,6 @@ do
     host=`cat /tmp/dhcp.leases | cut -f 2,3,4 -s -d" " | grep $mac | cut -f 3 -s -d" "`
     # ... show the mac address:
     #echo -e "$ip\t$host\t$mac"
-    python /home/admin/pico_client.py $ip >> /home/admin/logs/temp.log 2>/home/admin/logs/error.log
+    python /home/admin/pico_client.py $ip >> /home/admin/logs/$(date +'%d').log 2>/home/admin/logs/error.log
   done
 done

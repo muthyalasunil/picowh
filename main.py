@@ -40,7 +40,7 @@ def connect_to_network():
     ip = wlan.ifconfig()[0]
     mac = ubinascii.hexlify(wlan.config('mac'),':').decode()
 
-    return ip, mac
+    return wlan, ip, mac
 
 async def serve_client(reader, writer):
     print("Client connected")
@@ -52,24 +52,29 @@ async def serve_client(reader, writer):
         pass
 
     request = str(request_line)
-    #led_on = request.find('/light/on')
+    response = request
     #led_off = request.find('/light/off')
     #print( 'led on = ' + str(led_on))
     #print( 'led off = ' + str(led_off))
+    if request.find('/lighton') > -1:
+        onboard.on()
+        response = 'lighton'
+    elif request.find('/lightoff') > -1:
+        onboard.off()
+        response = 'lightoff'
+    elif request.find('/temperature') > -1:
 
-    stateis = ""
+        pico_temp = pico_temp_sensor.temp
+        temp, temp_f, humid = dht11_test.measure_temp()
+        wlan = network.WLAN(network.STA_IF)
+        mac = ubinascii.hexlify(wlan.config('mac'),':').decode()
 
-    pico_temp = pico_temp_sensor.temp
-    temp, temp_f, humid = dht11_test.measure_temp()
-    wlan = network.WLAN(network.STA_IF)
-    mac = ubinascii.hexlify(wlan.config('mac'),':').decode()
-
-    print('------------------------')
-    print('Temperature: %3.1f C' %temp)
-    print('Temperature: %3.1f F' %temp_f)
-    print('Humidity: %3.1f %%' %humid)
-    
-    response = webpage(mac, pico_temp, temp, temp_f, humid)
+        print('------------------------')
+        print('Temperature: %3.1f C' %temp)
+        print('Temperature: %3.1f F' %temp_f)
+        print('Humidity: %3.1f %%' %humid)
+        
+        response = webpage(mac, pico_temp, temp, temp_f, humid)
         
     writer.write('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
     writer.write(response)
@@ -81,7 +86,7 @@ async def serve_client(reader, writer):
 
 async def main():
     print('Connecting to Network...')
-    ip_address, mac_address = connect_to_network()
+    wlan, ip_address, mac_address = connect_to_network()
     print('ip = ' + ip_address)
     print('mac = ' + mac_address)
 
@@ -89,10 +94,10 @@ async def main():
     asyncio.create_task(asyncio.start_server(serve_client, "0.0.0.0", 80))
     while True:
         onboard.on()
-        print("heartbeat")
         await asyncio.sleep(0.25)
         onboard.off()
         await asyncio.sleep(5)
+
         
 try:
     asyncio.run(main())

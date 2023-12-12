@@ -13,13 +13,29 @@ def get_data(client_ip):
 
 if __name__=="__main__":
     
-    if len(sys.argv) > 1:
-        data = get_data('http://'+sys.argv[1])
-    else:
-        data = get_data('http://192.168.2.1')
+    url = 'http://IP_ADDRESS:80'
     now = datetime.datetime.now()
+
+    if len(sys.argv) > 2:
+        url = url.replace('IP_ADDRESS', sys.argv[1])+'/'+sys.argv[2]
+        data = get_data(url.replace('IP_ADDRESS', '192.168.2.148')+'/temperature')    
+
+    else:
     
-    print(now.strftime("%Y-%m-%d %H:%M:%S, ") + data)
+        if len(sys.argv) > 1:
+            url = url.replace('IP_ADDRESS', sys.argv[1])+'/temperature'
+        else:
+            url = url.replace('IP_ADDRESS', '192.168.2.148')+'/temperature'
+
+        print(url)
+        data = get_data(url.replace('IP_ADDRESS', '192.168.2.148')+'/temperature')    
+        print(now.strftime("%Y-%m-%d %H:%M:%S, ") + data)
+
+    
+
+
+
+
 
 
 
